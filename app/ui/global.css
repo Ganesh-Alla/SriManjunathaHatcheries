@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+:root:has(.no-scroll) {
+  overflow:hidden;
+}
+
+.ant-btn-primary{
+  background-color: #2F6FEB;
+}
+
+/* General row highlight */
+.highlight-row {
+  background-color: #ffb400 !important; /* Light blue background */
+}
+
+/* Specific styling for fixed columns */
+.highlight-row .ant-table-cell-fix-left,
+.highlight-row .ant-table-cell-fix-right,
+.highlight-row .ant-table-column-sort
+{
+  background-color: #ffb400 !important; /* Ensure the fixed columns are highlighted too */
+}
+
+.highlight-row .ant-table-cell-row-hover{
+  background-color: #fac64c !important; /* Ensure the fixed columns are highlighted too */
+}
+
