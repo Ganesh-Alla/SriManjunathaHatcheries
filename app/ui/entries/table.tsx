@@ -176,6 +176,26 @@ const EntriesTable: React.FC = () => {
     return record.preference === 'Yes' ? 'highlight-row' : '';
   };
 
+  const generateCSVBlob = (data: DataType[]): Blob => {
+    const headers = ['Date', 'Name', 'Selenity', 'Quantity', 'Unit', 'Phone Number', 'Preference'];
+    const rows = data.map(item => [
+      item.date,
+      item.name,
+      item.selenity,
+      item.quantity,
+      item.unit,
+      item.phonenumber,
+      item.preference
+    ]);
+  
+    const csvContent = [headers, ...rows]
+      .map(row => row.join(','))
+      .join('\n');
+  
+    return new Blob([csvContent], { type: 'text/csv' });
+  };
+  
+
   const generateExcelBlob = (data: DataType[]): Blob => {
     const headers = ['Date', 'Name', 'Selenity', 'Quantity', 'Unit', 'Phone Number', 'Preference'];
     const rows = data.map((item) => [
@@ -246,12 +266,10 @@ const generatePDFBlob = (data: DataType[]): Blob => {
 };
 
 
-
-
-const handleShareExcel = async (data: DataType[]) => {
-  const excelBlob = generateExcelBlob(data);
-  const excelFile = new File([excelBlob], `${formatDate()}.xlsx`, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  await shareFile(excelFile, `${formatDate()}.xlsx`, 'Excel');
+const handleShareCSV = (data: DataType[]) => {
+  const csvBlob = generateCSVBlob(data);
+  const csvFile = new File([csvBlob], `${formatDate()}.csv`, { type: 'text/csv' });
+  shareFile(csvFile, `${formatDate()}.csv`, 'CSV');
 };
 
 const formatDate = () => {
@@ -274,10 +292,10 @@ const handleSharePDF = async () => {
       label: (
         <button
         onClick={() => {
-          handleShareExcel(filteredData);
+          handleShareCSV(filteredData);
         }}
     >
-      Share as Excel
+      Share as CSV
     </button>
       ),
     },
@@ -285,7 +303,7 @@ const handleSharePDF = async () => {
       key: '2',
       label: (
         <button onClick={() => {
-handleSharePDF()
+            handleSharePDF()
         }}
  >
           Share as PDF
@@ -298,7 +316,7 @@ handleSharePDF()
         <button
         onClick={() => {
           const blob = generateExcelBlob(filteredData);
-          downloadFile(blob, 'data.xlsx');
+          downloadFile(blob, `${formatDate()}.xlsx`);
         }}
  >
           Download Excel
@@ -310,7 +328,7 @@ handleSharePDF()
       label: (
         <button onClick={() => {
           const blob = generatePDFBlob(filteredData);
-          downloadFile(blob, 'data.pdf');
+          downloadFile(blob, `${formatDate()}.pdf`);
         }}
  >
           Download PDF
