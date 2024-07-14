@@ -131,7 +131,7 @@ openNotificationWithIcon('success');
           />
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700" htmlFor="dateOfOrder">Date of Order</label>
+          <label className="block text-sm font-medium text-gray-700" htmlFor="dateOfOrder">Date</label>
           <input
             type="date"
             id="dateOfOrder"
