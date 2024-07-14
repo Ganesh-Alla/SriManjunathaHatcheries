@@ -86,6 +86,7 @@ const EntriesTable: React.FC = () => {
                confirm();
             }}
             style={{ marginBottom: 8, display: 'block' }}
+            format="DD/MM/YY"
           />
         </div>
       ),
