@@ -4,6 +4,7 @@ import {
   HomeIcon,
   DocumentDuplicateIcon,
   UserIcon,
+  FolderOpenIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -14,6 +15,11 @@ const links = [
     name: 'Entries',
     href: '/dashboard/entries',
     icon: DocumentDuplicateIcon,
+  },
+  {
+    name: 'Custom',
+    href: '/dashboard/custom',
+    icon: FolderOpenIcon,
   },
   { name: 'Profile', href: '/dashboard/profile', icon: UserIcon },
 ];

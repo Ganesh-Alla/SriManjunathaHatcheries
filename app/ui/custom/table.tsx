@@ -12,7 +12,6 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { ExclamationCircleFilled } from '@ant-design/icons';
 import { RangePickerProps } from 'antd/es/date-picker';
-import Link from 'next/link';
 
 
 interface DataType {
@@ -22,7 +21,7 @@ interface DataType {
   name: string;
   selenity: string;
   quantity: string;
-  unit: string;
+  unit?: string;
   preference: string;
   phonenumber: string;
 }
@@ -51,7 +50,6 @@ const fetchData = async (setData: React.Dispatch<React.SetStateAction<DataType[]
       name: item.name,
       selenity: item.selenity,
       quantity: item.quantity,
-      unit: item.unit,
       preference: item.preference,
       phonenumber: item.phoneNumber,
     }));
@@ -61,56 +59,12 @@ const fetchData = async (setData: React.Dispatch<React.SetStateAction<DataType[]
   setLoading(false);
 };
 
-const EntriesTable: React.FC = () => {
+const CustomTable: React.FC = () => {
   const [data, setData] = useState<DataType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [filteredData, setFilteredData] = useState<DataType[]>(data);
-  const [selectedRecord, setSelectedRecord] = useState<DataType | null>(null);
-  const [contextMenuVisible, setContextMenuVisible] = useState(false);
-  const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const longPressTimeout = useRef<number | undefined>(undefined);
-  const { confirm } = Modal;
-  const showDeleteConfirm = () => {
-    confirm({
-      title: 'Are you sure want to Delete?',
-      icon: <ExclamationCircleFilled />,
-      content: `Click Confirm to Delete Record of ${selectedRecord?.name}`,
-      okText: 'Confirm',
-      okType: 'danger',
-      cancelText: 'Cancel',
-      async onOk() {
-        'use server';
-        try{
-          const { data, error } = await supabaseAnon
-          .from('Invoices')
-          .delete()
-          .eq('id', selectedRecord?.id);
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        fetchData(setData, setFilteredData, setLoading);
-        if(error){console.log(error);}
-      } catch (error) {
-        console.error('Error logging out:', error);
-      }
-      },
-    });
-  };
+  const [dateRange, setDateRange] = useState<String[] | null>(null);
 
-  const handleContextMenu = (event: React.MouseEvent, record: DataType) => {
-    event.preventDefault();
-    setSelectedRecord(record);
-    setContextMenuPosition({ x: event.clientX, y: event.clientY });
-    setContextMenuVisible(true);
-  };
-
-  const handleLongPressStart = (event: React.TouchEvent, record: DataType) => {
-    longPressTimeout.current = window.setTimeout(() => {
-      handleContextMenu(event as unknown as React.MouseEvent, record);
-    }, 800);
-  };
-
-  const handleLongPressEnd = () => {
-    clearTimeout(longPressTimeout.current);
-  };
 
   const items: MenuProps['items'] = [
     {
@@ -169,14 +123,9 @@ const EntriesTable: React.FC = () => {
   }, []);
 
   const disabledDate: RangePickerProps['disabledDate'] = (current) => {
-    // Can not select days before today and today
     return current && current > dayjs().endOf('day');
   };
 
-  const handleFocus = (e: React.FocusEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
   const columns: TableColumnsType<DataType> = [
     {
       title: 'Date',
@@ -184,33 +133,8 @@ const EntriesTable: React.FC = () => {
       key: 'date',
       width: 75,
       sorter: {
-        compare: (a, b) => parseDate(a.date) - parseDate(b.date),
-        multiple: 2,
+        compare: (b,a) => parseDate(a.date) - parseDate(b.date),
       },
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm,close }) => (
-        <div onFocus={handleFocus} style={{ padding: 8 }}>
-          <DatePicker.RangePicker
-          disabledDate={disabledDate}
-          placement='bottomLeft'
-          defaultPickerValue={[dayjs().subtract(1,'month'), dayjs()]}
-            onChange={(dates) => {
-              const formattedDates = dates ? dates.map(date => date?.format('DD/MM/YY')).filter((date): date is string => !!date) : [];
-              setSelectedKeys(formattedDates ? [formattedDates[0]+","+formattedDates[1]]:[]);
-               confirm();
-            }}
-            style={{ marginBottom: 8, display: 'block' }}
-            format="DD/MM/YY"
-          />
-        </div>
-      ),
-      onFilter: (value, record) => {
-        const recordDate = moment(record.date, 'DD/MM/YY');
-        const [start, end] = (value as string).split(',');
-        if(start === 'undefined' || end === 'undefined'){
-          return true
-        }
-        return recordDate.isBetween(moment(start, 'DD/MM/YY'), moment(end, 'DD/MM/YY'), 'day', '[]');
-},
     },
     {
       title: 'Name',
@@ -224,47 +148,12 @@ const EntriesTable: React.FC = () => {
       dataIndex: 'selenity',
       key: 'selenity',
       width: 60,
-      sorter: (a, b) =>  {
-        const numA = Number(a.selenity.replace(/[^0-9]/g, ''));
-        const numB = Number(b.selenity.replace(/[^0-9]/g, ''));
-        return numA - numB;
-      }
     },
     {
       title: 'Qnty',
       dataIndex: 'quantity',
       key: 'quantity',
       width: 100,
-      sorter: (a, b) =>  {
-        const numA = Number(a.quantity.replace(/,/g, ''));
-        const numB = Number(b.quantity.replace(/,/g, ''));
-        return numA - numB;
-      },
-    },
-    {
-      title: 'Unit',
-      dataIndex: 'unit',
-      key: 'unit',
-      width: 100,
-      filters: [
-        {
-          text: 'Maheshwara',
-          value: 'Maheshwara',
-        },
-        {
-          text: 'Vishnu',
-          value: 'Vishnu',
-        },
-        {
-          text: 'Ganga',
-          value: 'Ganga',
-        },
-        {
-          text: 'Yamuna',
-          value: 'Yamuna',
-        },
-      ],
-        onFilter: (value, record) => record.unit.indexOf(value as string) === 0,
     },
     {
       title: 'Ph No',
@@ -277,19 +166,6 @@ const EntriesTable: React.FC = () => {
       dataIndex: 'preference',
       key: 'preference',
       width: 60,
-      sorter: {
-        compare: (a, b) => b.preference?.length - a.preference?.length,
-      },
-      filters: [
-        {
-          text: 'Yes',
-          value: 'Yes',
-        },
-        {
-          text: 'No',
-          value: 'No',
-        },],
-        onFilter: (value, record) => record.preference.indexOf(value as string) === 0,
     },
   ];
 
@@ -374,8 +250,8 @@ const generatePDFBlob = (data: DataType[]): Blob => {
   const doc = new jsPDF();
   doc.text('Entries', 10, 10);
 
-  const headers = [['Date', 'Name', 'Sel', 'Qnty', 'Unit', 'Ph.no', 'Pref']];
-  const rows = data.map((item) => [item.date, item.name, item.selenity, item.quantity, item.unit, item.phonenumber, item.preference]);
+  const headers = [['Date', 'Name', 'Sel', 'Qnty', 'Ph.no', 'Pref']];
+  const rows = data.map((item) => [item.date, item.name, item.selenity, item.quantity,  item.phonenumber, item.preference]);
 
   autoTable(doc, {
     head: headers,
@@ -407,30 +283,20 @@ const handleSharePDF = async () => {
   shareFile(pdfFile, `${formatDate()}.pdf`, 'PDF');
 };
 
-  const menu: MenuProps['items'] = [
-    {
-      key: '1',
-      label: (
-        <Link href={`/dashboard/entries/${selectedRecord?.id}/edit`}
-    >
-      Edit
-    </Link>
-      ),
-    },
-    {
-      key: '2',
-      label: (
-        <button onClick={showDeleteConfirm}
- >
-          Delete
-        </button>
-      ),
-    },
-  ];
 
   const onChange: TableProps<DataType>['onChange'] = (pagination, filters, sorter, extra) => {
-    // console.log('params', pagination, filters, sorter, extra);
+    console.log('params', pagination, filters, sorter, extra);
     setFilteredData(extra.currentDataSource);
+  };
+
+  const filterDataByDateRange = (dates: string[]) => {
+    if (dates.length === 2) {
+      const filtered = data.filter(item => {
+        const itemDate = moment(item.date, 'DD/MM/YY');
+        return itemDate.isBetween(moment(dates[0], 'DD/MM/YY'), moment(dates[1], 'DD/MM/YY'), 'day', '[]');
+      });
+      setFilteredData(filtered);
+    }
   };
 
 
@@ -454,35 +320,35 @@ const handleSharePDF = async () => {
     </Typography.Link>
   </Dropdown>
   </div>
+  <div className="mb-3">
+  <DatePicker.RangePicker
+          disabledDate={disabledDate}
+          placement='bottomLeft'
+          defaultPickerValue={[dayjs().subtract(1,'month'), dayjs()]}
+            onChange={(dates) => {
+              if (dates) {
+              const formattedDates = dates ? dates.map(date => date?.format('DD/MM/YY')).filter((date): date is string => !!date) : [];
+              setDateRange(formattedDates);
+              filterDataByDateRange(formattedDates);
+            } else {
+              setDateRange([]);
+              setFilteredData(data); // Reset to show all data when date range is cleared
+            }
+            }}
+            format="DD/MM/YY"
+          />
+      </div>
    {(loading || !data) ?
     <Spin className="flex items-center justify-center" size='large'></Spin>:
    <Suspense fallback={<div>Loading..</div>}>
    <Table columns={columns}
-   dataSource={data}
+   dataSource={filteredData.length > 0 ? filteredData : data}
    onChange={onChange}
-   onRow={(record) => ({
-    onContextMenu: (event) => handleContextMenu(event, record),
-    onTouchStart: (event) => handleLongPressStart(event, record),
-    onTouchEnd: handleLongPressEnd,
-    onTouchMove: handleLongPressEnd,
-  })}
    rowClassName={rowClassName}
    scroll={{ x: 700,  }} loading={loading} size='small' />
    </Suspense>}
-   {contextMenuVisible && (
-        <Dropdown
-        menu={{items:menu}}
-        trigger={['click']} open={contextMenuVisible} onOpenChange={setContextMenuVisible}>
-          <div  className="absolute"
-            style={{
-              top: `${contextMenuPosition.y}px`,
-              left: `${contextMenuPosition.x}px`,
-              display: contextMenuVisible ? 'block' : 'none',
-            }}/>
-        </Dropdown>
-      )}
     </>
   );
 };
 
-export default EntriesTable;
+export default CustomTable;

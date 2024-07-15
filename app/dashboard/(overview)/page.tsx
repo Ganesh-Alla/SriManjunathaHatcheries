@@ -15,7 +15,7 @@ type NotificationType = 'success' | 'info' | 'warning' | 'error';
 const RegistrationPage: React.FC = () => {
 
   const [quantity, setQuantity] = useState<string>('');
-  const [preference, setPreference] = useState('');
+  const [preference, setPreference] = useState('No');
   const hiddenButtonRef = useRef<HTMLButtonElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [api, contextHolder] = notification.useNotification();
@@ -25,6 +25,7 @@ const RegistrationPage: React.FC = () => {
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputDate = e.target.value;
+    console.log(inputDate);
 setPreviousDate(inputDate)
     try {
       const parsedDate = parse(inputDate, 'yyyy-MM-dd', new Date());
@@ -34,7 +35,6 @@ setPreviousDate(inputDate)
     } catch (error) {
       setDate('');
     }
-
   }
 
   const openNotificationWithIcon = (type: NotificationType) => {
@@ -68,7 +68,8 @@ setPreviousDate(inputDate)
     const input = e.target.value.replace(/,/g, '');
     if (!isNaN(Number(input))) {
       setQuantity(formatNumber(input));
-    }};
+    }
+  };
 
 
 const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -195,7 +196,7 @@ openNotificationWithIcon('success');
         </div>
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700">Preference</label>
-          <Radio.Group options={preferenceOptions} name='preference'
+          <Radio.Group options={preferenceOptions} defaultValue={preference} name='preference'
           onChange={({ target: { value } }: RadioChangeEvent) => {
             setPreference(value);
             }}

@@ -1,8 +1,7 @@
 
-import { lusitana } from '@/app/ui/fonts';
 import { Suspense } from 'react';
 import { Metadata } from 'next';
-import EnteriesTable from '@/app/ui/entries/table';
+import CustomTable from '@/app/ui/custom/table';
 import { Spin } from 'antd';
 
 export const metadata: Metadata = {
@@ -14,7 +13,7 @@ export default async function Page() {
   return (
     <div className="w-full select-none">
        <Suspense fallback={<Spin className='flex items-center justify-center'/>}>
-       <EnteriesTable/>
+       <CustomTable/>
       </Suspense>
     </div>
   );
