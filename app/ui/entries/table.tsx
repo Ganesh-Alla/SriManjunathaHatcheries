@@ -182,7 +182,7 @@ const EntriesTable: React.FC = () => {
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
-      width: 75,
+      width: 80,
       sorter: {
         compare: (a, b) => parseDate(a.date) - parseDate(b.date),
         multiple: 2,
